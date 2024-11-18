@@ -1,12 +1,5 @@
 import { Component, DestroyRef, inject } from '@angular/core';
-import {
-  map,
-  Observable,
-  of,
-  onErrorResumeNext,
-  Subject,
-  switchMap,
-} from 'rxjs';
+import { catchError, interval, Observable, of, Subject, switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-task-6-8',
@@ -26,14 +19,9 @@ export class Task68Component {
 
   fetchData(id: string) {
     return this.getSomeData(id)
-      .pipe(
-        switchMap((data) => {
-          //console.log(data);
-          return this.getUserData(data);
-        })
-      )
+      .pipe(switchMap((data) => this.getUserData(data)))
       .subscribe({
-       // next: (val) => console.log(val),
+        // next: (val) => console.log(val),
       });
   }
 
@@ -44,24 +32,24 @@ export class Task68Component {
   //task7
   subject = new Subject<string>();
   private destroyRef = inject(DestroyRef);
-  ngOnInit() {
-    const sub1 = this.subject.subscribe({
-      //next: (val) => console.log(val),
-    });
-    const sub2 = this.subject.pipe(map((val) => val.toUpperCase())).subscribe({
-      //next: (val) => console.log(val),
-    });
+  // ngOnInit() {
+  //   const sub1 = this.subject.subscribe({
+  //     //next: (val) => console.log(val),
+  //   });
+  //   const sub2 = this.subject.pipe(map((val) => val.toUpperCase())).subscribe({
+  //     //next: (val) => console.log(val),
+  //   });
 
-    this.subject.next('Hello World');
+  //   this.subject.next('Hello World');
 
-    this.destroyRef.onDestroy(() => {
-      sub1.unsubscribe();
-      sub2.unsubscribe();
-    });
+  //   this.destroyRef.onDestroy(() => {
+  //     sub1.unsubscribe();
+  //     sub2.unsubscribe();
+  //   });
 
-    //task6
-    this.fetchData('14');
-  }
+  //   //task6
+  //   this.fetchData('14');
+  // }
 
   //task8
   // В цьому випадку потік буде завершено,
@@ -77,27 +65,39 @@ export class Task68Component {
   // }).pipe(
   //   catchError((err) => {
   //     console.log(err);
-  //     return of(0);
+  //     return of(1, 2, 3, 4);
   //   })
   // );
   // result = this.observable.subscribe({
   //   next: (val) => console.log(val),
   // });
 
-  // Потік буде відновлений іншим потоком.
   observable = new Observable<number>((subs) => {
     const randomValue = Math.random();
     if (randomValue < 0.3) {
       subs.error('Error!!!!!');
     } else {
       subs.next(randomValue);
+      subs.complete();
     }
   });
 
-  safeObservable = onErrorResumeNext(this.observable, of(1, 2, 3));
-
-  result = this.safeObservable.subscribe({
-    // next: (val) => console.log(val),
-    // error: (err) => console.log(err.message),
-  });
+  ngOnInit() {
+    const subscription = interval(2000)
+      .pipe(
+        switchMap(() =>
+          this.observable.pipe(
+            catchError((error) => {
+              console.error(error);
+              return of(0);
+            })
+          )
+        )
+      )
+      .subscribe({
+        next: (value) => console.log(value),
+        error: (err) => console.log(err),
+      });
+    this.destroyRef.onDestroy(() => subscription.unsubscribe());
+  }
 }

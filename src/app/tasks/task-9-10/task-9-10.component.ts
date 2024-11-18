@@ -4,7 +4,7 @@ import {
   from,
   interval,
   mergeMap,
-  of,
+  Observable,
   scan,
   takeUntil,
   throwError,
@@ -20,12 +20,22 @@ import {
   styleUrl: './task-9-10.component.css',
 })
 export class Task910Component {
-
   //task9
-  //oneSource = throwError(() => new Error('1 second http request failed'))
-  oneSource = of('1 second http request');
-  twoSource = of('2 second http request');
-  threeSource = of('3 second http request');
+  createSource(value: string): Observable<string> {
+    return new Observable((subs) => {
+      const randomValue = Math.random();
+      if (randomValue < 0.3) {
+        subs.error('Error');
+      } else {
+        subs.next(value);
+        subs.complete();
+      }
+    });
+  }
+
+  oneSource = this.createSource('1 second http request');
+  twoSource = this.createSource('2 second http request');
+  threeSource = this.createSource('3 second http request');
 
   sources = [this.oneSource, this.twoSource, this.threeSource];
 
@@ -34,16 +44,15 @@ export class Task910Component {
       .pipe(
         mergeMap((source) =>
           source.pipe(
-            catchError((err) => {
-              console.log(err);
-              return throwError(() => new Error('Stopping the stream'));
-            })
+            catchError((err) =>
+              throwError(() => new Error('Stopping the stream'))
+            )
           )
         )
       )
       .subscribe({
-        next: (val) => console.log(val),
-        error: (err) => console.log(err.message),
+        // next: (val) => console.log(val),
+        // error: (err) => console.log(err.message),
       });
   }
 
@@ -66,6 +75,6 @@ export class Task910Component {
       takeUntil(timer(2000))
     )
     .subscribe({
-      next: (val) => console.log(val),
+      //next: (val) => console.log(val),
     });
 }

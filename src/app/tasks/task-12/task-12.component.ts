@@ -28,7 +28,6 @@ export class Task12Component {
     this.twoSecondSource,
     this.threeSecondSource,
     this.fourSecondSource,
-    this.fiveSecondSource,
   ];
   ngOnInit() {
     from(this.sources)
@@ -64,5 +63,18 @@ export class Task12Component {
       });
     //видасть лише результат першого стріму, не залежно від порядку розташування стрімів у sources,
     //всі інші проігноруються поки не виконається перший.
+
+    this.fiveSecondSource
+      .pipe(
+        //tap((value) => console.log(value)),
+        exhaustMap(() =>
+          from(this.sources).pipe(exhaustMap((source) => source))
+        )
+      )
+      .subscribe({
+        //next: (val) => console.log(val),
+      });
+    //виконається fiveSecondSource з затримкою в 5 секунд,
+    //після чого виконається тільки перший із вкладениї стрімів
   }
 }
