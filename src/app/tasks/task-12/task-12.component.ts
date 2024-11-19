@@ -66,7 +66,6 @@ export class Task12Component {
 
     this.fiveSecondSource
       .pipe(
-        //tap((value) => console.log(value)),
         exhaustMap(() =>
           from(this.sources).pipe(exhaustMap((source) => source))
         )
@@ -76,5 +75,17 @@ export class Task12Component {
       });
     //виконається fiveSecondSource з затримкою в 5 секунд,
     //після чого виконається тільки перший із вкладениї стрімів
+
+    from(this.sources)
+      .pipe(
+        exhaustMap((source) =>
+          source.pipe(exhaustMap(() => this.fiveSecondSource))
+        )
+      )
+      .subscribe({
+        //next: (val) => console.log(val),
+      });
+    //в цьому випадку виконується лише перший потік і його вкладений,
+    // за цей час виконання, всі нові потоки будуть ігноруватися
   }
 }
