@@ -1,0 +1,11 @@
+<h1>{{ title }}</h1>
+
+<app-task-1-5 />
+<app-task-6-8 />
+<app-task-9-10 />
+<app-task-12 />
+
+<button (click)="toggleComponent()">Toggle Task-11 Component</button>
+@if(showComponent) {
+  <app-task-11 />
+}
